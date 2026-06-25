@@ -18,11 +18,15 @@ func main() {
 		log.Fatal("Failed to load config: ", err)
 	}
 
-	pool, err := database.Connect(cfg.DatabaseURL)
+	db, err := database.Connect(cfg.DatabaseURL)
 	if err != nil {
 		log.Fatal("Failed to connect to database: ", err)
 	}
-	defer pool.Close()
+	sqlDB, err := db.DB()
+	if err != nil {
+		log.Fatal("Failed to get database instance: ", err)
+	}
+	defer sqlDB.Close()
 
 	router := gin.Default()
 	router.SetTrustedProxies(nil)

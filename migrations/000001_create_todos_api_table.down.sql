@@ -1,1 +1,1 @@
-DROP TABLE IF EXISTS todos_api;
+DROP TABLE IF EXISTS todos;

@@ -16,8 +16,18 @@ def "migrate version" [] {
     migrate -path migrations -database $DATABASE_URL version
 }
 
+def "migrate create" [name: string] {
+    ^migrate create -ext sql -dir migrations -seq $name
+}
+
+def "migrate force" [version: int] {
+    migrate -path migrations -database $DATABASE_URL force $version
+}
+
 print "Migration commands loaded:"
-print "  migrate up       - Apply all migrations"
-print "  migrate down     - Rollback all migrations"
-print "  migrate goto N   - Go to specific version"
-print "  migrate version  - Show current version"
+print "  migrate up           - Apply all migrations"
+print "  migrate down         - Rollback all migrations"
+print "  migrate goto N       - Go to specific version"
+print "  migrate version      - Show current version"
+print "  migrate create NAME  - Create new migration files"
+print "  migrate force N      - Force set version, then run migrate up"
