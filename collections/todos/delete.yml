@@ -8,7 +8,7 @@ http:
   url: "{{base_url}}/todos/:id"
   params:
     - name: id
-      value: "3"
+      value: "1"
       type: path
   body:
     type: json
