@@ -2,6 +2,22 @@ opencollection: 1.0.0
 
 info:
   name: collections
+config:
+  proxy:
+    inherit: true
+    config:
+      protocol: http
+      hostname: ""
+      port: ""
+      auth:
+        username: ""
+        password: ""
+      bypassProxy: ""
+
+request:
+  variables:
+    - name: base_url
+      value: http://localhost:3005
 bundled: false
 extensions:
   bruno:
