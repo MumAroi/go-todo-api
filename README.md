@@ -65,5 +65,5 @@ air -v
 
 ```bash
 # รันด้วย air (live reload)
-air 
+air run
 ```
