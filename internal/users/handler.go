@@ -1,4 +1,4 @@
-package handlers
+package users
 
 import (
 	"errors"
@@ -6,9 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"todo_api/internal/container"
-	"todo_api/internal/models"
-	"todo_api/internal/utils"
+	"todo_api/internal/shared/container"
+	"todo_api/internal/shared/utils"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -50,12 +49,13 @@ func CreateUserHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		user := &models.User{
+		user := &User{
 			Email:    req.Email,
 			Password: string(hashedPassword),
 		}
 
-		created, err := c.UserRepo.CreateUser(user)
+		userRepo := c.UserRepo.(*UserRepository)
+		created, err := userRepo.CreateUser(user)
 		if err != nil {
 			if strings.Contains(err.Error(), "duplicate") || strings.Contains(err.Error(), "unique") {
 				ctx.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
@@ -78,7 +78,8 @@ func LoginHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		user, err := c.UserRepo.GetUserByEmail(req.Email)
+		userRepo := c.UserRepo.(*UserRepository)
+		user, err := userRepo.GetUserByEmail(req.Email)
 		if err != nil {
 			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 			return
@@ -111,7 +112,8 @@ func LoginHandler(c *container.Container) gin.HandlerFunc {
 
 func GetUserHandler(c *container.Container) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		user, err := c.UserRepo.GetUsers()
+		userRepo := c.UserRepo.(*UserRepository)
+		user, err := userRepo.GetUsers()
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -130,7 +132,8 @@ func GetUserByIDHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		user, err := c.UserRepo.GetUserByID(uint(id))
+		userRepo := c.UserRepo.(*UserRepository)
+		user, err := userRepo.GetUserByID(uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -163,7 +166,8 @@ func UpdateUserHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		_, err = c.UserRepo.GetUserByID(uint(id))
+		userRepo := c.UserRepo.(*UserRepository)
+		_, err = userRepo.GetUserByID(uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
@@ -192,7 +196,7 @@ func UpdateUserHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		updated, err := c.UserRepo.UpdateUser(uint(id), user)
+		updated, err := userRepo.UpdateUser(uint(id), user)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -211,7 +215,8 @@ func DeleteHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		if err := c.UserRepo.DeleteUser(uint(id)); err != nil {
+		userRepo := c.UserRepo.(*UserRepository)
+		if err := userRepo.DeleteUser(uint(id)); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}

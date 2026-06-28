@@ -5,11 +5,12 @@ import (
 	"reflect"
 	"strings"
 	"todo_api/internal/config"
-	"todo_api/internal/container"
 	"todo_api/internal/database"
-	"todo_api/internal/handlers"
-	"todo_api/internal/middleware"
-	"todo_api/internal/validators"
+	"todo_api/internal/shared/container"
+	"todo_api/internal/shared/middleware"
+	"todo_api/internal/shared/validators"
+	"todo_api/internal/todos"
+	"todo_api/internal/users"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -36,7 +37,9 @@ func main() {
 	}
 	defer sqlDB.Close()
 
-	container := container.NewContainer(cfg, db)
+	todoRepo := todos.NewTodoRepository(db)
+	userRepo := users.NewUserRepository(db)
+	container := container.NewContainer(cfg, todoRepo, userRepo)
 
 	router := gin.Default()
 
@@ -60,17 +63,17 @@ func main() {
 		})
 	})
 
-	router.POST("/auth/register", handlers.CreateUserHandler(container))
-	router.POST("/auth/login", handlers.LoginHandler(container))
+	router.POST("/auth/register", users.CreateUserHandler(container))
+	router.POST("/auth/login", users.LoginHandler(container))
 
 	protected := router.Group("/todos")
 	protected.Use(middleware.AuthMiddleware(cfg))
 	{
-		protected.POST("", handlers.CreateTodoHandler(container))
-		protected.GET("", handlers.GetTodosHandler(container))
-		protected.GET(":id", handlers.GetTodoByIDHandler(container))
-		protected.PUT(":id", handlers.UpdateTodoHandler(container))
-		protected.DELETE(":id", handlers.DeleteTodoHandler(container))
+		protected.POST("", todos.CreateTodoHandler(container))
+		protected.GET("", todos.GetTodosHandler(container))
+		protected.GET("/:id", todos.GetTodoByIDHandler(container))
+		protected.PUT("/:id", todos.UpdateTodoHandler(container))
+		protected.DELETE("/:id", todos.DeleteTodoHandler(container))
 	}
 
 	router.Run(":" + cfg.AppPort)

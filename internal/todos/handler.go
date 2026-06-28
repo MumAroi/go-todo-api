@@ -1,11 +1,10 @@
-package handlers
+package todos
 
 import (
 	"errors"
 	"net/http"
 	"strconv"
-	"todo_api/internal/container"
-	"todo_api/internal/models"
+	"todo_api/internal/shared/container"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -35,13 +34,14 @@ func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		todo := &models.Todo{
+		todo := &Todo{
 			Title:     req.Title,
 			Completed: req.Completed,
 			UserID:    userID.(string),
 		}
 
-		created, err := c.TodoRepo.CreateTodo(todo)
+		todoRepo := c.TodoRepo.(*TodoRepository)
+		created, err := todoRepo.CreateTodo(todo)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -53,7 +53,8 @@ func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
 
 func GetTodosHandler(c *container.Container) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		todos, err := c.TodoRepo.GetTodos()
+		todoRepo := c.TodoRepo.(*TodoRepository)
+		todos, err := todoRepo.GetTodos()
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -72,7 +73,8 @@ func GetTodoByIDHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		todo, err := c.TodoRepo.GetTodoByID(uint(id))
+		todoRepo := c.TodoRepo.(*TodoRepository)
+		todo, err := todoRepo.GetTodoByID(uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
@@ -111,7 +113,8 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		_, err = c.TodoRepo.GetTodoByUserIdAndID(uint(id), userID.(string))
+		todoRepo := c.TodoRepo.(*TodoRepository)
+		_, err = todoRepo.GetTodoByUserIdAndID(uint(id), userID.(string))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
@@ -135,7 +138,7 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		updated, err := c.TodoRepo.UpdateTodo(uint(id), todo)
+		updated, err := todoRepo.UpdateTodo(uint(id), todo)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -154,7 +157,8 @@ func DeleteTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		if err := c.TodoRepo.DeleteTodo(uint(id)); err != nil {
+		todoRepo := c.TodoRepo.(*TodoRepository)
+		if err := todoRepo.DeleteTodo(uint(id)); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
