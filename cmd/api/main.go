@@ -4,9 +4,9 @@ import (
 	"log"
 	"reflect"
 	"strings"
+	"todo_api/internal/auth"
 	"todo_api/internal/config"
 	"todo_api/internal/database"
-	"todo_api/internal/shared/container"
 	"todo_api/internal/shared/middleware"
 	"todo_api/internal/shared/validators"
 	"todo_api/internal/todos"
@@ -22,7 +22,6 @@ func main() {
 	godotenv.Load()
 
 	cfg, err := config.Load()
-
 	if err != nil {
 		log.Fatal("Failed to load config: ", err)
 	}
@@ -39,7 +38,6 @@ func main() {
 
 	todoRepo := todos.NewTodoRepository(db)
 	userRepo := users.NewUserRepository(db)
-	container := container.NewContainer(cfg, todoRepo, userRepo)
 
 	router := gin.Default()
 
@@ -63,18 +61,13 @@ func main() {
 		})
 	})
 
-	router.POST("/auth/register", users.CreateUserHandler(container))
-	router.POST("/auth/login", users.LoginHandler(container))
+	auth.RegisterRoutes(router, userRepo, cfg)
 
-	protected := router.Group("/todos")
+	protected := router.Group("")
 	protected.Use(middleware.AuthMiddleware(cfg))
-	{
-		protected.POST("", todos.CreateTodoHandler(container))
-		protected.GET("", todos.GetTodosHandler(container))
-		protected.GET("/:id", todos.GetTodoByIDHandler(container))
-		protected.PUT("/:id", todos.UpdateTodoHandler(container))
-		protected.DELETE("/:id", todos.DeleteTodoHandler(container))
-	}
+
+	users.RegisterRoutes(protected.Group("/users"), userRepo)
+	todos.RegisterRoutes(protected.Group("/todos"), todoRepo)
 
 	router.Run(":" + cfg.AppPort)
 }

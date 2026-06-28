@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"todo_api/internal/shared/container"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -20,7 +19,7 @@ type UpdateTodoRequest struct {
 	Completed *bool   `json:"completed"`
 }
 
-func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
+func CreateTodoHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var req CreateTodoRequest
 		if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -40,8 +39,7 @@ func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
 			UserID:    userID.(string),
 		}
 
-		todoRepo := c.TodoRepo.(*TodoRepository)
-		created, err := todoRepo.CreateTodo(todo)
+		created, err := repo.CreateTodo(todo)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -51,10 +49,9 @@ func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
 	}
 }
 
-func GetTodosHandler(c *container.Container) gin.HandlerFunc {
+func GetTodosHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		todoRepo := c.TodoRepo.(*TodoRepository)
-		todos, err := todoRepo.GetTodos()
+		todos, err := repo.GetTodos()
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -64,7 +61,7 @@ func GetTodosHandler(c *container.Container) gin.HandlerFunc {
 	}
 }
 
-func GetTodoByIDHandler(c *container.Container) gin.HandlerFunc {
+func GetTodoByIDHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		idStr := ctx.Param("id")
 		id, err := strconv.ParseUint(idStr, 10, 32)
@@ -73,8 +70,7 @@ func GetTodoByIDHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		todoRepo := c.TodoRepo.(*TodoRepository)
-		todo, err := todoRepo.GetTodoByID(uint(id))
+		todo, err := repo.GetTodoByID(uint(id))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
@@ -88,7 +84,7 @@ func GetTodoByIDHandler(c *container.Container) gin.HandlerFunc {
 	}
 }
 
-func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
+func UpdateTodoHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		idStr := ctx.Param("id")
 		id, err := strconv.ParseUint(idStr, 10, 32)
@@ -113,8 +109,7 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		todoRepo := c.TodoRepo.(*TodoRepository)
-		_, err = todoRepo.GetTodoByUserIdAndID(uint(id), userID.(string))
+		_, err = repo.GetTodoByUserIdAndID(uint(id), userID.(string))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})
@@ -138,7 +133,7 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		updated, err := todoRepo.UpdateTodo(uint(id), todo)
+		updated, err := repo.UpdateTodo(uint(id), todo)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -148,7 +143,7 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 	}
 }
 
-func DeleteTodoHandler(c *container.Container) gin.HandlerFunc {
+func DeleteTodoHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		idStr := ctx.Param("id")
 		id, err := strconv.ParseUint(idStr, 10, 32)
@@ -157,8 +152,7 @@ func DeleteTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		todoRepo := c.TodoRepo.(*TodoRepository)
-		if err := todoRepo.DeleteTodo(uint(id)); err != nil {
+		if err := repo.DeleteTodo(uint(id)); err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
