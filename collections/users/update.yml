@@ -5,7 +5,7 @@ info:
 
 http:
   method: PUT
-  url: "{{base_url}}/todos/:id"
+  url: "{{base_url}}/users/:id"
   params:
     - name: id
       value: "3"
@@ -14,8 +14,8 @@ http:
     type: json
     data: |-
       {
-          "title": "111",
-          "completed": true
+        "email": "test6@mail.com",
+        "password": "Abc332211!"
       }
   auth: inherit
 

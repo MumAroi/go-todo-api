@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{base_url}}/todos"
+  url: "{{base_url}}/users"
   auth: inherit
 
 settings:

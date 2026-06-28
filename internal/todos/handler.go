@@ -61,6 +61,24 @@ func GetTodosHandler(repo *TodoRepository) gin.HandlerFunc {
 	}
 }
 
+func GetMyTodosHandler(repo *TodoRepository) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		userID, exists := ctx.Get("user_id")
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+			return
+		}
+
+		todos, err := repo.GetTodosByUserID(userID.(string))
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, todos)
+	}
+}
+
 func GetTodoByIDHandler(repo *TodoRepository) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		idStr := ctx.Param("id")
