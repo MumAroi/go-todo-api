@@ -31,7 +31,15 @@ func (r *TodoRepository) GetTodos() ([]models.Todo, error) {
 
 func (r *TodoRepository) GetTodoByID(id uint) (*models.Todo, error) {
 	var todo models.Todo
-	if err := r.db.First(&todo, id).Error; err != nil {
+	if err := r.db.Where("id = ?", id).First(&todo).Error; err != nil {
+		return nil, err
+	}
+	return &todo, nil
+}
+
+func (r *TodoRepository) GetTodoByUserIdAndID(id uint, userID string) (*models.Todo, error) {
+	var todo models.Todo
+	if err := r.db.Where("id = ?", id).Where("user_id = ?", userID).First(&todo).Error; err != nil {
 		return nil, err
 	}
 	return &todo, nil

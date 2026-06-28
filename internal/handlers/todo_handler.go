@@ -29,9 +29,16 @@ func CreateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
+		userID, exists := ctx.Get("user_id")
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+			return
+		}
+
 		todo := &models.Todo{
 			Title:     req.Title,
 			Completed: req.Completed,
+			UserID:    userID.(string),
 		}
 
 		created, err := c.TodoRepo.CreateTodo(todo)
@@ -98,7 +105,13 @@ func UpdateTodoHandler(c *container.Container) gin.HandlerFunc {
 			return
 		}
 
-		_, err = c.TodoRepo.GetTodoByID(uint(id))
+		userID, exists := ctx.Get("user_id")
+		if !exists {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "user not authenticated"})
+			return
+		}
+
+		_, err = c.TodoRepo.GetTodoByUserIdAndID(uint(id), userID.(string))
 		if err != nil {
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				ctx.JSON(http.StatusNotFound, gin.H{"error": "todo not found"})

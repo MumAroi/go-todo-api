@@ -6,6 +6,9 @@ info:
 http:
   method: GET
   url: "{{base_url}}/todos"
+  headers:
+    - name: Authorization
+      value: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3Q2QG1haWwuY29tIiwiZXhwIjoxNzgyNzM0NDUzLCJ1c2VyX2lkIjoiNmM4OWJmZmUtOWIxNy00YTgwLWJiZDEtOTZiOGRhMDlhMzhhIn0.oqDi-S-noqbTlG0Cc5-IXaXeVQbS9CSbTLC56L-0e0s
   auth: inherit
 
 settings:
