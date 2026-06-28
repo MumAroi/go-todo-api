@@ -66,7 +66,7 @@ func main() {
 	router.DELETE("/todos/:id", handlers.DeleteTodoHandler(container))
 
 	router.POST("/auth/register", handlers.CreateUserHandler(container))
-	// router.POST("/auth/login", handlers.LoginHandler(container))
+	router.POST("/auth/login", handlers.LoginHandler(container))
 
 	router.Run(":" + cfg.AppPort)
 }

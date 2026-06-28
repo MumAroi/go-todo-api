@@ -7,6 +7,7 @@ import (
 type Config struct {
 	DatabaseURL string `env:"DATABASE_URL"`
 	AppPort     string `env:"APP_PORT"`
+	JWTSecret   string `env:"JWT_SECRET"`
 }
 
 func Load() (*Config, error) {

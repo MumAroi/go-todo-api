@@ -5,11 +5,14 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
+	"todo_api/internal/config"
 	"todo_api/internal/container"
 	"todo_api/internal/models"
 	"todo_api/internal/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
@@ -27,6 +30,10 @@ type UpdateUserRequest struct {
 type LoginRequest struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required,strong_password,min=6"`
+}
+
+type LoginResponse struct {
+	Token string `json:"token"`
 }
 
 func CreateUserHandler(c *container.Container) gin.HandlerFunc {
@@ -60,6 +67,51 @@ func CreateUserHandler(c *container.Container) gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, created)
+	}
+}
+
+func LoginHandler(c *container.Container) gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var req LoginRequest
+		if err := ctx.ShouldBindJSON(&req); err != nil {
+			errResponse := utils.ParseValidationError(err)
+			ctx.JSON(http.StatusBadRequest, errResponse)
+			return
+		}
+
+		user, err := c.UserRepo.GetUserByEmail(req.Email)
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+			return
+		}
+
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
+		if err != nil {
+			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+			return
+		}
+
+		claims := jwt.MapClaims{
+			"user_id": user.ID,
+			"email":   user.Email,
+			"exp":     time.Now().Add(24 * time.Hour).Unix(),
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+		cfg, err := config.Load()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load config: " + err.Error()})
+			return
+		}
+		tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
+
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token: " + err.Error()})
+			return
+		}
+
+		ctx.JSON(http.StatusOK, LoginResponse{Token: tokenString})
 	}
 }
 
