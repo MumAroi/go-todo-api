@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"todo_api/internal/config"
 	"todo_api/internal/container"
 	"todo_api/internal/models"
 	"todo_api/internal/utils"
@@ -94,17 +93,12 @@ func LoginHandler(c *container.Container) gin.HandlerFunc {
 		claims := jwt.MapClaims{
 			"user_id": user.ID,
 			"email":   user.Email,
-			"exp":     time.Now().Add(24 * time.Hour).Unix(),
+			"exp":     time.Now().Add(c.Config.JWTExpiration).Unix(),
 		}
 
 		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
-		cfg, err := config.Load()
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load config: " + err.Error()})
-			return
-		}
-		tokenString, err := token.SignedString([]byte(cfg.JWTSecret))
+		tokenString, err := token.SignedString([]byte(c.Config.JWTSecret))
 
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token: " + err.Error()})
