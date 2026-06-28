@@ -3,9 +3,9 @@ package models
 import "time"
 
 type Todo struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	Title     string    `json:"title" gorm:"not null"`
-	Completed bool      `json:"completed" gorm:"default:false"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	ID        uint      `gorm:"primaryKey" json:"id"`
+	Title     string    `gorm:"not null" json:"title"`
+	Completed bool      `gorm:"default:false" json:"completed"`
+	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

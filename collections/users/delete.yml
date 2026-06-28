@@ -1,0 +1,26 @@
+info:
+  name: delete
+  type: http
+  seq: 1
+
+http:
+  method: DELETE
+  url: "{{base_url}}/todos/:id"
+  params:
+    - name: id
+      value: "1"
+      type: path
+  body:
+    type: json
+    data: |-
+      {
+          "title": "111",
+          "completed": true
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
